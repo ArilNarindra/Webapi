@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KUNA BOT Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#050B14',
+                        carddark: '#0B1623',
+                        inputdark: '#121E2E',
+                        primary: '#4F46E5',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .console-scroll::-webkit-scrollbar { width: 6px; }
+        .console-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .console-text { font-family: 'Courier New', Courier, monospace; }
+        .fade-in { animation: fadeIn 0.2s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-darkbg text-gray-800 dark:text-gray-200 min-h-screen font-sans transition-colors duration-300 pb-20 relative">
+
+    <div id="view-create" class="p-4 flex flex-col items-center justify-center min-h-[80vh]">
+        <h1 class="text-2xl font-bold mb-6 w-full max-w-md">Create a New Bot</h1>
+        <div class="bg-white dark:bg-carddark w-full max-w-md rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-800">
+            <form id="botForm" class="space-y-4">
+                <div>
+                    <label class="text-xs text-gray-500 ml-1 mb-1 block">Nama Bot</label>
+                    <input type="text" id="inputName" placeholder="e.g., My Awesome Bot" required
+                           class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-inputdark focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500 ml-1 mb-1 block">Nomor Bot</label>
+                    <input type="number" id="inputNumber" placeholder="e.g., 6281234567890" required
+                           class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-inputdark focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500 ml-1 mb-1 block">Nomor Admin</label>
+                    <input type="number" id="inputAdminNumber" placeholder="e.g., 6281234567890" required
+                           class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-inputdark focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="createNewBot()" class="w-full py-3 rounded-lg font-semibold bg-primary text-white hover:bg-indigo-600 transition shadow-lg shadow-indigo-500/30">Create</button>
+                    <button type="button" class="w-full py-3 rounded-lg font-semibold bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="view-list" class="hidden p-4 max-w-md mx-auto mt-6">
+        <h1 class="text-2xl font-bold mb-6">Your Bots</h1>
+        <div id="botListContainer" class="space-y-4"></div>
+    </div>
+
+    <div id="view-console" class="hidden p-4 max-w-md mx-auto">
+        <div class="flex items-center justify-between mb-4">
+            <button onclick="switchTab('list')" class="text-sm text-gray-500 hover:text-primary">← Back</button>
+            <span id="statusBadge" class="text-xs bg-gray-600 text-white px-2 py-1 rounded">STOPPED</span>
+        </div>
+
+        <h1 id="consoleTitle" class="text-2xl font-bold uppercase mb-1"></h1>
+        <p class="text-xs text-gray-500 mb-4">ID: <span id="consoleId"></span> • Admin: <span id="consoleAdmin"></span></p>
+
+        <div class="flex gap-2 mb-4">
+            <button onclick="startSimulation()" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-medium shadow-lg shadow-green-900/20">Start</button>
+            <button onclick="stopSimulation()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg text-sm font-medium shadow-lg shadow-gray-900/20">Stop</button>
+            
+            <button onclick="showEditModal()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-sm font-medium shadow-lg shadow-indigo-900/20">Edit</button>
+            
+            <button onclick="showResetModal()" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg text-sm font-medium shadow-lg shadow-red-900/20">Reset</button>
+        </div>
+
+        <div class="bg-[#030712] border border-gray-800 rounded-lg p-4 h-80 overflow-y-auto console-scroll font-mono text-xs leading-relaxed shadow-inner relative">
+            <div class="flex items-center gap-2 mb-2 border-b border-gray-800 pb-2 sticky top-0 bg-[#030712]">
+                <span class="flex gap-1">
+                    <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                </span>
+                <span class="text-gray-500 ml-auto">LIVE • <span id="consoleBotNameLive"></span></span>
+            </div>
+            <div id="terminalContent" class="space-y-1 pt-2"></div>
+        </div>
+    </div>
+
+    <div id="resetModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 fade-in">
+        <div class="bg-[#111827] border border-gray-700 w-full max-w-xs rounded-2xl p-6 shadow-2xl">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-red-900/30 flex items-center justify-center text-red-500">⚠</div>
+                <h3 class="text-lg font-bold text-white">Reset Session</h3>
+            </div>
+            <p class="text-sm text-gray-400 mb-6 leading-relaxed">
+                Are you sure you want to reset the session for bot "<span id="modalBotName" class="text-white font-semibold"></span>"?
+            </p>
+            <div class="flex gap-3 justify-end">
+                <button onclick="hideResetModal()" class="px-4 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-800 transition">Cancel</button>
+                <button onclick="confirmReset()" class="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition shadow-lg shadow-red-900/30">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 fade-in">
+        <div class="bg-[#111827] border border-gray-700 w-full max-w-md rounded-2xl p-6 shadow-2xl">
+            <h3 class="text-xl font-bold text-white mb-4">Edit Bot Details</h3>
+            
+            <form id="editForm" class="space-y-4">
+                <div>
+                    <label class="text-xs text-gray-400 ml-1 mb-1 block">Nama Bot</label>
+                    <input type="text" id="editName" class="w-full p-3 rounded-lg border border-gray-700 bg-gray-900 text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 ml-1 mb-1 block">Nomor Bot</label>
+                    <input type="number" id="editNumber" class="w-full p-3 rounded-lg border border-gray-700 bg-gray-900 text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 ml-1 mb-1 block">Nomor Admin</label>
+                    <input type="number" id="editAdmin" class="w-full p-3 rounded-lg border border-gray-700 bg-gray-900 text-white focus:outline-none focus:border-indigo-500">
+                </div>
+            </form>
+
+            <div class="flex gap-3 justify-end mt-6">
+                <button onclick="hideEditModal()" class="px-4 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-800 transition">Cancel</button>
+                <button onclick="saveEditBot()" class="px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-lg shadow-indigo-900/30">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastSuccess" class="hidden fixed bottom-24 left-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-xl z-50 flex items-center justify-between fade-in">
+        <div class="flex items-center gap-3">
+            <div class="bg-white/20 p-1 rounded-full">✓</div>
+            <div>
+                <h4 class="font-bold text-sm">Success</h4>
+                <p class="text-xs opacity-90" id="toastMessage">Operation completed.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed bottom-0 left-0 w-full bg-white dark:bg-[#050B14] border-t border-gray-200 dark:border-gray-800 p-2 pb-4 flex justify-around z-40 shadow-[0_-5px_10px_rgba(0,0,0,0.1)]">
+        <button id="navCreate" onclick="switchTab('create')" class="flex flex-col items-center justify-center w-16 text-gray-400 hover:text-primary transition group">
+            <div class="text-2xl mb-1 group-focus:scale-110 transition">+</div>
+            <span class="text-[10px] font-medium">Create</span>
+        </button>
+        <button id="navList" onclick="switchTab('list')" class="flex flex-col items-center justify-center w-16 text-gray-400 hover:text-primary transition group">
+            <div class="text-xl font-bold mb-1 group-focus:scale-110 transition">K</div>
+            <span class="text-[10px] font-medium">My Bots</span>
+        </button>
+        <button id="navTheme" onclick="toggleTheme()" class="flex flex-col items-center justify-center w-16 text-gray-400 hover:text-yellow-400 transition group">
+            <div class="text-xl mb-1 group-focus:rotate-45 transition">☀</div>
+            <span class="text-[10px] font-medium">Thema</span>
+        </button>
+    </div>
+
+    <script>
+        let bots = JSON.parse(localStorage.getItem('kunaBots')) || [];
+        let activeBot = null;
+        let simulationInterval = null;
+
+        function saveToLocal() { localStorage.setItem('kunaBots', JSON.stringify(bots)); }
+        function toggleTheme() { document.documentElement.classList.toggle('dark'); }
+        
+        // --- NAVIGATION ---
+        function switchTab(tabName) {
+            ['view-create', 'view-list', 'view-console'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('navCreate').className = "flex flex-col items-center justify-center w-16 text-gray-400 hover:text-primary transition group";
+            document.getElementById('navList').className = "flex flex-col items-center justify-center w-16 text-gray-400 hover:text-primary transition group";
+
+            if(tabName === 'create') {
+                document.getElementById('view-create').classList.remove('hidden');
+                document.getElementById('navCreate').classList.replace('text-gray-400', 'text-primary');
+            } else if (tabName === 'list') {
+                renderBotList();
+                document.getElementById('view-list').classList.remove('hidden');
+                document.getElementById('navList').classList.replace('text-gray-400', 'text-primary');
+            } else if (tabName === 'console') {
+                document.getElementById('view-console').classList.remove('hidden');
+            }
+        }
+
+        // --- CREATE ---
+        function createNewBot() {
+            const name = document.getElementById('inputName').value;
+            const number = document.getElementById('inputNumber').value;
+            const adminNumber = document.getElementById('inputAdminNumber').value;
+            if(!name || !number || !adminNumber) { alert("Mohon isi semua data!"); return; }
+
+            const newBot = {
+                id: Math.floor(Math.random() * 90000000000) + 10000000000, 
+                name: name, number: number, adminNumber: adminNumber, status: 'Offline'
+            };
+            bots.push(newBot);
+            saveToLocal();
+            document.getElementById('botForm').reset();
+            switchTab('list');
+            showToast("Bot created successfully!");
+        }
+
+        // --- RENDER LIST (ADA TOMBOL HAPUS) ---
+        function renderBotList() {
+            const container = document.getElementById('botListContainer');
+            container.innerHTML = ""; 
+            if (bots.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-500 mt-10 p-4 border border-dashed border-gray-600 rounded-lg">Belum ada bot.<br>Klik menu '+' untuk membuat.</div>`;
+                return;
+            }
+            bots.forEach(bot => {
+                const el = document.createElement('div');
+                el.className = "bg-white dark:bg-carddark border border-gray-200 dark:border-gray-700 p-4 rounded-xl shadow-sm flex justify-between items-center cursor-pointer hover:border-primary transition";
+                
+                // Event listener klik card untuk buka console
+                el.addEventListener('click', () => openConsole(bot));
+
+                el.innerHTML = `
+                    <div>
+                        <h3 class="font-bold text-lg dark:text-white">${bot.name}</h3>
+                        <p class="text-xs text-gray-500">ID: ${bot.id}</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-2 h-2 rounded-full ${bot.status === 'Online' ? 'bg-green-500' : 'bg-red-500'}"></span>
+                        
+                        <button onclick="deleteBot(event, ${bot.id})" class="text-gray-400 hover:text-red-500 transition p-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                            </svg>
+                        </button>
+                        
+                        <span class="text-xs font-mono text-gray-400">></span>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        // --- DELETE FUNCTION ---
+        function deleteBot(event, botId) {
+            event.stopPropagation(); // Mencegah card terklik (biar gak masuk console)
+            if(confirm("Yakin ingin menghapus bot ini secara permanen?")) {
+                bots = bots.filter(b => b.id !== botId);
+                saveToLocal();
+                renderBotList();
+                showToast("Bot successfully deleted");
+            }
+        }
+
+        // --- CONSOLE ---
+        function openConsole(bot) {
+            activeBot = bot;
+            updateConsoleUI();
+            document.getElementById('terminalContent').innerHTML = "";
+            updateStatusBadge('STOPPED', 'bg-gray-600');
+            switchTab('console');
+        }
+
+        function updateConsoleUI() {
+            if(!activeBot) return;
+            document.getElementById('consoleTitle').innerText = activeBot.name.toUpperCase();
+            document.getElementById('consoleId').innerText = activeBot.id;
+            document.getElementById('consoleAdmin').innerText = activeBot.adminNumber;
+            document.getElementById('consoleBotNameLive').innerText = activeBot.name.toUpperCase();
+        }
+
+        // --- EDIT FUNCTIONS ---
+        function showEditModal() {
+            if(!activeBot) return;
+            document.getElementById('editName').value = activeBot.name;
+            document.getElementById('editNumber').value = activeBot.number;
+            document.getElementById('editAdmin').value = activeBot.adminNumber;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function hideEditModal() { document.getElementById('editModal').classList.add('hidden'); }
+
+        function saveEditBot() {
+            const newName = document.getElementById('editName').value;
+            const newNumber = document.getElementById('editNumber').value;
+            const newAdmin = document.getElementById('editAdmin').value;
+
+            if(!newName || !newNumber || !newAdmin) { alert("Data tidak boleh kosong"); return; }
+
+            // Update object activeBot
+            activeBot.name = newName;
+            activeBot.number = newNumber;
+            activeBot.adminNumber = newAdmin;
+
+            // Update array bots
+            const index = bots.findIndex(b => b.id === activeBot.id);
+            if(index !== -1) {
+                bots[index] = activeBot;
+                saveToLocal();
+            }
+
+            hideEditModal();
+            updateConsoleUI(); // Refresh tampilan console dengan data baru
+            showToast("Bot details updated!");
+        }
+
+
+        // --- SIMULATION ---
+        function logToTerminal(html) {
+            const term = document.getElementById('terminalContent');
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            term.appendChild(div);
+            term.parentElement.scrollTop = term.parentElement.scrollHeight;
+        }
+        
+        function updateStatusBadge(text, color) {
+            const b = document.getElementById('statusBadge');
+            b.innerText = text; b.className = `text-xs text-white px-2 py-1 rounded ${color}`;
+        }
+
+        function startSimulation() {
+            if(simulationInterval) return;
+            updateStatusBadge('LIVE', 'bg-green-600 animate-pulse');
+            logToTerminal(`<span class="text-gray-400">> Starting service...</span>`);
+            let step = 0;
+            simulationInterval = setInterval(() => {
+                step++;
+                if(step === 1) logToTerminal(`<span class="text-gray-300">> Loading session: <span class="text-blue-400">${activeBot.name}</span></span>`);
+                if(step === 2) logToTerminal(`<span class="text-gray-400">> Connecting...</span>`);
+                if(step === 4) logToTerminal(`<span class="text-green-400">> Connected! Waiting for messages.</span>`);
+            }, 1000);
+        }
+
+        function stopSimulation() {
+            if(simulationInterval) { clearInterval(simulationInterval); simulationInterval = null; }
+            updateStatusBadge('STOPPED', 'bg-gray-600');
+            logToTerminal(`<span class="text-orange-400 mt-2">> Bot Stopped</span>`);
+            logToTerminal(`<span class="text-gray-400">> Session terminated.</span>`);
+        }
+
+        // --- RESET ---
+        function showResetModal() { 
+            document.getElementById('modalBotName').innerText = activeBot.name;
+            document.getElementById('resetModal').classList.remove('hidden'); 
+        }
+        function hideResetModal() { document.getElementById('resetModal').classList.add('hidden'); }
+        function confirmReset() {
+            hideResetModal(); stopSimulation();
+            document.getElementById('terminalContent').innerHTML = "";
+            showToast("Session reset successfully");
+        }
+
+        // --- TOAST ---
+        function showToast(msg) {
+            document.getElementById('toastMessage').innerText = msg;
+            const t = document.getElementById('toastSuccess');
+            t.classList.remove('hidden');
+            setTimeout(() => t.classList.add('hidden'), 3000);
+        }
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', () => {
+            if (bots.length > 0) switchTab('list'); else switchTab('create');
+        });
+    </script>
+</body>
+</html>
