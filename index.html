@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KUNA BOT - Create Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom warna agar mirip screenshot */
+        body { background-color: #050B14; color: white; font-family: sans-serif; }
+        .card-bg { background-color: #0B1623; border: 1px solid #1E293B; }
+        .input-bg { background-color: #121E2E; border: 1px solid #2D3E55; }
+        .btn-primary { background-color: #4F46E5; }
+        .btn-secondary { background-color: #334155; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="w-full max-w-md mb-6 flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Create a New Bot</h1>
+    </div>
+
+    <div class="card-bg w-full max-w-md rounded-xl p-6 shadow-lg">
+        
+        <form action="#" method="POST" class="space-y-4">
+            
+            <div>
+                <input type="text" placeholder="e.g., KUNA BOT (Nama Bot)" 
+                       class="input-bg w-full p-3 rounded-lg text-sm focus:outline-none focus:border-indigo-500 text-gray-300">
+            </div>
+
+            <div>
+                <input type="number" placeholder="e.g., 6281234567890 (No. Bot)" 
+                       class="input-bg w-full p-3 rounded-lg text-sm focus:outline-none focus:border-indigo-500 text-gray-300">
+            </div>
+
+            <div>
+                <input type="number" placeholder="e.g., 6281234567890 (No. Admin Bot)" 
+                       class="input-bg w-full p-3 rounded-lg text-sm focus:outline-none focus:border-indigo-500 text-gray-300">
+            </div>
+
+            <div>
+                <input type="text" placeholder="e.g., 081234567890 (No. Rekening)" 
+                       class="input-bg w-full p-3 rounded-lg text-sm focus:outline-none focus:border-indigo-500 text-gray-300">
+            </div>
+
+            <div>
+                <input type="text" placeholder="e.g., Free / 6k per bulan" 
+                       class="input-bg w-full p-3 rounded-lg text-sm focus:outline-none focus:border-indigo-500 text-gray-300">
+            </div>
+
+            <div>
+                <input type="text" placeholder="e.g., Dana/Gopay/QRIS" 
+                       class="input-bg w-full p-3 rounded-lg text-sm focus:outline-none focus:border-indigo-500 text-gray-300">
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button type="button" class="btn-primary w-1/2 py-3 rounded-lg font-semibold hover:bg-indigo-600 transition">
+                    Create
+                </button>
+                <button type="button" class="btn-secondary w-1/2 py-3 rounded-lg font-semibold hover:bg-gray-600 transition text-gray-300">
+                    Cancel
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <div class="fixed bottom-0 w-full bg-[#050B14] border-t border-gray-800 p-4 flex justify-around">
+        <div class="text-center text-indigo-500">
+            <div class="text-2xl">+</div>
+            <div class="text-xs">Create</div>
+        </div>
+        <div class="text-center text-gray-500">
+            <div class="text-xl font-bold">K</div>
+            <div class="text-xs">KUNA BOT</div>
+        </div>
+        <div class="text-center text-gray-500">
+            <div class="text-xl">☀</div>
+            <div class="text-xs">Thema</div>
+        </div>
+    </div>
+
+</body>
+</html>
